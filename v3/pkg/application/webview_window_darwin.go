@@ -19,6 +19,12 @@ struct WebviewPreferences {
     bool *TextInteractionEnabled;
     bool *FullscreenEnabled;
     bool *AllowsBackForwardNavigationGestures;
+    // KeepRunningWhenHidden, when set, controls
+    // `WKPreferences.inactiveSchedulingPolicy` (macOS 14+ / iOS 17+):
+    //   true  -> WKInactiveSchedulingPolicyNone (do not throttle JS when hidden)
+    //   false -> WKInactiveSchedulingPolicyThrottle (explicit throttle)
+    // When NULL the platform default (automatic) is preserved.
+    bool *KeepRunningWhenHidden;
 };
 
 extern void registerListener(unsigned int event);
@@ -80,6 +86,23 @@ void* windowNew(unsigned int id, int width, int height, bool fraudulentWebsiteWa
              config.preferences.elementFullscreenEnabled = *preferences.FullscreenEnabled;
          }
      }
+#endif
+
+	// `inactiveSchedulingPolicy` is read at navigation time from the
+	// WKWebViewConfiguration's preferences, so it must be assigned BEFORE the
+	// WKWebView is allocated. Assigning it on an already-created WebView is a
+	// silent no-op — without setting it here, a Hidden:true window's JS event
+	// loop is throttled to 0Hz by macOS once the app has any other active
+	// window. Opting in via KeepRunningWhenHidden lets background WebViews
+	// keep running (e.g. for headless tool execution).
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
+	if (@available(macOS 14.0, *)) {
+		if (preferences.KeepRunningWhenHidden != NULL) {
+			config.preferences.inactiveSchedulingPolicy = *preferences.KeepRunningWhenHidden
+				? WKInactiveSchedulingPolicyNone
+				: WKInactiveSchedulingPolicyThrottle;
+		}
+	}
 #endif
 
 	config.suppressesIncrementalRendering = true;
@@ -1338,6 +1361,9 @@ func (w *macosWebviewWindow) getWebviewPreferences() C.struct_WebviewPreferences
 	}
 	if wvprefs.AllowsBackForwardNavigationGestures.IsSet() {
 		result.AllowsBackForwardNavigationGestures = bool2CboolPtr(wvprefs.AllowsBackForwardNavigationGestures.Get())
+	}
+	if wvprefs.KeepRunningWhenHidden.IsSet() {
+		result.KeepRunningWhenHidden = bool2CboolPtr(wvprefs.KeepRunningWhenHidden.Get())
 	}
 
 	return result
