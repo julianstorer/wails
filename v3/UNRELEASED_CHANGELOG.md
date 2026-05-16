@@ -23,6 +23,7 @@ After processing, the content will be moved to the main changelog and this file 
 
 ## Fixed
 <!-- Bug fixes -->
+- Fix a cluster of pre-existing bugs in the legacy GTK3 build path (`-tags gtk3`) surfaced by CodeRabbit on #5463: file-association launches no longer skip startup handlers; `getTheme` is bounds- and type-safe; `appName` no longer frees GLib-owned memory; `clipboardGet` no longer leaks the `gchar*` returned by GTK; `Calloc` now uses pointer receivers so the pool actually tracks allocations; `zoomOut` uses the reciprocal of `zoomInFactor` instead of a negative multiplier that clamped to 1.0; `execJS` reuses the preallocated empty world-name instead of leaking a `C.CString("")` per call; `menuItem.setHidden` correctly inverts to `widgetSetVisible`; a development `fmt.Println` was removed from `menuItem.setAccelerator`. Resolves #5465.
 
 ## Deprecated
 <!-- Soon-to-be removed features -->
