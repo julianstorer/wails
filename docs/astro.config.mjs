@@ -19,7 +19,7 @@ export default defineConfig({
   devToolbar: { enabled: true },
   integrations: [
     react(),
-    d2({ experimental: { useD2js: true } }),
+    d2(),
     sitemap(),
     starlight({
       title: "",
@@ -233,6 +233,11 @@ export default defineConfig({
                 { label: "Message Dialogs", link: "/features/dialogs/message" },
                 { label: "Custom Dialogs", link: "/features/dialogs/custom" },
               ],
+            },
+            {
+              label: "Autostart",
+              collapsed: true,
+              autogenerate: { directory: "features/autostart" },
             },
             {
               label: "Clipboard",
